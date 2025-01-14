@@ -7,8 +7,8 @@
 	<div class="field">
 		<label :for="id">{{ displayName }}</label>
 		<div class="field__row">
-			<NcButton type="secondary"
-				:id="id"
+			<NcButton :id="id"
+				type="secondary"
 				:aria-label="ariaLabel"
 				data-admin-theming-setting-file-picker
 				@click="activateLocalFilePicker">
@@ -209,7 +209,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import './shared/field.scss';
+@use './shared/field' as *;
 
 .field {
 	&__loading-icon {

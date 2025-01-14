@@ -34,8 +34,8 @@ class WebhooksEventListener implements IEventListener {
 	}
 
 	public function handle(Event $event): void {
-		$webhookListeners = $this->mapper->getByEvent($event::class);
 		$user = $this->userSession->getUser();
+		$webhookListeners = $this->mapper->getByEvent($event::class, $user?->getUID());
 
 		foreach ($webhookListeners as $webhookListener) {
 			// TODO add group membership to be able to filter on it
@@ -50,6 +50,8 @@ class WebhooksEventListener implements IEventListener {
 					[
 						$data,
 						$webhookListener->getId(),
+						/* Random string to avoid collision with another job with the same parameters */
+						bin2hex(random_bytes(5)),
 					]
 				);
 			}

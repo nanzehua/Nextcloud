@@ -20,13 +20,26 @@ use OCP\IUser;
  */
 interface IAppManager {
 	/**
-	 * Returns the app information from "appinfo/info.xml".
+	 * @since 30.0.0
+	 */
+	public const BACKEND_CALDAV = 'caldav';
+
+	/**
+	 * Returns the app information from "appinfo/info.xml" for an app
 	 *
 	 * @param string|null $lang
 	 * @return array|null
 	 * @since 14.0.0
+	 * @since 31.0.0 Usage of $path is discontinued and throws an \InvalidArgumentException, use {@see self::getAppInfoByPath} instead.
 	 */
 	public function getAppInfo(string $appId, bool $path = false, $lang = null);
+
+	/**
+	 * Returns the app information from a given path ending with "/appinfo/info.xml"
+	 *
+	 * @since 31.0.0
+	 */
+	public function getAppInfoByPath(string $path, ?string $lang = null): ?array;
 
 	/**
 	 * Returns the app information from "appinfo/info.xml".
@@ -46,7 +59,7 @@ interface IAppManager {
 	 * @return string|null
 	 * @since 29.0.0
 	 */
-	public function getAppIcon(string $appId, bool $dark = false): string|null;
+	public function getAppIcon(string $appId, bool $dark = false): ?string;
 
 	/**
 	 * Check if an app is enabled for user
@@ -131,17 +144,15 @@ interface IAppManager {
 	 * @param bool $automaticDisabled
 	 * @since 8.0.0
 	 */
-	public function disableApp($appId, $automaticDisabled = false);
+	public function disableApp($appId, $automaticDisabled = false): void;
 
 	/**
 	 * Get the directory for the given app.
 	 *
-	 * @param string $appId
-	 * @return string
 	 * @since 11.0.0
 	 * @throws AppPathNotFoundException
 	 */
-	public function getAppPath($appId);
+	public function getAppPath(string $appId): string;
 
 	/**
 	 * Get the web path for the given app.
@@ -174,7 +185,7 @@ interface IAppManager {
 	 * Clear the cached list of apps when enabling/disabling an app
 	 * @since 8.1.0
 	 */
-	public function clearAppsCache();
+	public function clearAppsCache(): void;
 
 	/**
 	 * @param string $appId
@@ -190,7 +201,7 @@ interface IAppManager {
 	 * @return bool
 	 *
 	 * This function walks through the Nextcloud directory and loads all apps
-	 * it can find. A directory contains an app if the file /appinfo/info.xml
+	 * it can find. A directory contains an app if the file `/appinfo/info.xml`
 	 * exists.
 	 *
 	 * if $types is set to non-empty array, only apps of those types will be loaded
@@ -242,6 +253,8 @@ interface IAppManager {
 	 *
 	 * @since 25.0.6
 	 * @since 28.0.0 Added optional $withFallbacks parameter
+	 * @deprecated 31.0.0
+	 * Use @see \OCP\INavigationManager::getDefaultEntryIdForUser() instead
 	 */
 	public function getDefaultAppForUser(?IUser $user = null, bool $withFallbacks = true): string;
 
@@ -250,15 +263,49 @@ interface IAppManager {
 	 *
 	 * @return string[] The default applications
 	 * @since 28.0.0
+	 * @deprecated 31.0.0
+	 * Use @see \OCP\INavigationManager::getDefaultEntryIds() instead
 	 */
 	public function getDefaultApps(): array;
 
 	/**
 	 * Set the global default apps with fallbacks
 	 *
-	 * @param string[] $appId
+	 * @param string[] $defaultApps
 	 * @throws \InvalidArgumentException If any of the apps is not installed
 	 * @since 28.0.0
+	 * @deprecated 31.0.0
+	 * Use @see \OCP\INavigationManager::setDefaultEntryIds() instead
 	 */
 	public function setDefaultApps(array $defaultApps): void;
+
+	/**
+	 * Check whether the given backend is required by at least one app.
+	 *
+	 * @param self::BACKEND_* $backend Name of the backend, one of `self::BACKEND_*`
+	 * @return bool True if at least one app requires the backend
+	 *
+	 * @since 30.0.0
+	 */
+	public function isBackendRequired(string $backend): bool;
+
+	/**
+	 * Clean the appId from forbidden characters
+	 *
+	 * @psalm-taint-escape file
+	 * @psalm-taint-escape include
+	 * @psalm-taint-escape html
+	 * @psalm-taint-escape has_quotes
+	 *
+	 * @since 31.0.0
+	 */
+	public function cleanAppId(string $app): string;
+
+	/**
+	 * Get a list of all apps in the apps folder
+	 *
+	 * @return list<string> an array of app names (string IDs)
+	 * @since 31.0.0
+	 */
+	public function getAllAppsInAppsFolders(): array;
 }

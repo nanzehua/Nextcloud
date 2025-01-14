@@ -30,6 +30,8 @@
 </template>
 
 <script lang="ts">
+import type { INavigationEntry } from '../../../../../core/src/types/navigation'
+
 import { showError } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
@@ -75,9 +77,8 @@ export default defineComponent({
 		/**
 		 * All enabled apps which can be navigated
 		 */
-		const allApps = Object.values(
-			loadState<Record<string, { id: string, name?: string, icon: string }>>('core', 'apps'),
-		).map(({ id, name, icon }) => ({ label: name, id, icon }))
+		const allApps = loadState<INavigationEntry[]>('core', 'apps')
+			.map(({ id, name, icon }) => ({ label: name, id, icon }))
 
 		/**
 		 * Currently selected app, wrapps the setter
@@ -114,6 +115,7 @@ export default defineComponent({
 h3, h4 {
 	font-weight: bold;
 }
+
 h4, h5 {
 	margin-block-start: 12px;
 }

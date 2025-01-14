@@ -8,12 +8,13 @@
 namespace OCA\DAV\DAV;
 
 use Exception;
+use OCA\DAV\CalDAV\Calendar;
+use OCA\DAV\CalDAV\DefaultCalendarValidator;
 use OCA\DAV\Connector\Sabre\Directory;
 use OCA\DAV\Connector\Sabre\FilesPlugin;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\IUser;
-use Sabre\CalDAV\ICalendar;
 use Sabre\DAV\Exception as DavException;
 use Sabre\DAV\PropertyStorage\Backend\BackendInterface;
 use Sabre\DAV\PropFind;
@@ -112,28 +113,11 @@ class CustomPropertiesBackend implements BackendInterface {
 	];
 
 	/**
-	 * @var Tree
-	 */
-	private $tree;
-
-	/**
-	 * @var IDBConnection
-	 */
-	private $connection;
-
-	/**
-	 * @var IUser
-	 */
-	private $user;
-
-	/**
 	 * Properties cache
 	 *
 	 * @var array
 	 */
 	private $userCache = [];
-
-	private Server $server;
 	private XmlService $xmlService;
 
 	/**
@@ -142,15 +126,12 @@ class CustomPropertiesBackend implements BackendInterface {
 	 * @param IUser $user owner of the tree and properties
 	 */
 	public function __construct(
-		Server $server,
-		Tree $tree,
-		IDBConnection $connection,
-		IUser $user,
+		private Server $server,
+		private Tree $tree,
+		private IDBConnection $connection,
+		private IUser $user,
+		private DefaultCalendarValidator $defaultCalendarValidator,
 	) {
-		$this->server = $server;
-		$this->tree = $tree;
-		$this->connection = $connection;
-		$this->user = $user;
 		$this->xmlService = new XmlService();
 		$this->xmlService->elementMap = array_merge(
 			$this->xmlService->elementMap,
@@ -319,10 +300,11 @@ class CustomPropertiesBackend implements BackendInterface {
 
 				// $path is the principal here as this prop is only set on principals
 				$node = $this->tree->getNodeForPath($href);
-				if (!($node instanceof ICalendar) || $node->getOwner() !== $path) {
+				if (!($node instanceof Calendar) || $node->getOwner() !== $path) {
 					throw new DavException('No such calendar');
 				}
 
+				$this->defaultCalendarValidator->validateScheduleDefaultCalendar($node);
 				break;
 		}
 	}
@@ -359,16 +341,16 @@ class CustomPropertiesBackend implements BackendInterface {
 	private function cacheDirectory(string $path, Directory $node): void {
 		$prefix = ltrim($path . '/', '/');
 		$query = $this->connection->getQueryBuilder();
-		$query->select('name', 'propertypath', 'propertyname', 'propertyvalue', 'valuetype')
+		$query->select('name', 'p.propertypath', 'p.propertyname', 'p.propertyvalue', 'p.valuetype')
 			->from('filecache', 'f')
-			->leftJoin('f', 'properties', 'p', $query->expr()->andX(
-				$query->expr()->eq('propertypath', $query->func()->concat(
-					$query->createNamedParameter($prefix),
-					'name'
-				)),
-				$query->expr()->eq('userid', $query->createNamedParameter($this->user->getUID()))
-			))
-			->where($query->expr()->eq('parent', $query->createNamedParameter($node->getInternalFileId(), IQueryBuilder::PARAM_INT)));
+			->hintShardKey('storage', $node->getNode()->getMountPoint()->getNumericStorageId())
+			->leftJoin('f', 'properties', 'p', $query->expr()->eq('p.propertypath', $query->func()->concat(
+				$query->createNamedParameter($prefix),
+				'f.name'
+			)),
+			)
+			->where($query->expr()->eq('parent', $query->createNamedParameter($node->getInternalFileId(), IQueryBuilder::PARAM_INT)))
+			->andWhere($query->expr()->eq('p.userid', $query->createNamedParameter($this->user->getUID())));
 		$result = $query->executeQuery();
 
 		$propsByPath = [];
@@ -411,7 +393,7 @@ class CustomPropertiesBackend implements BackendInterface {
 			// request only a subset
 			$sql .= ' AND `propertyname` in (?)';
 			$whereValues[] = $requestedProperties;
-			$whereTypes[] = \Doctrine\DBAL\Connection::PARAM_STR_ARRAY;
+			$whereTypes[] = IQueryBuilder::PARAM_STR_ARRAY;
 		}
 
 		$result = $this->connection->executeQuery(
@@ -537,7 +519,9 @@ class CustomPropertiesBackend implements BackendInterface {
 			$value = $value->getHref();
 		} else {
 			$valueType = self::PROPERTY_TYPE_OBJECT;
-			$value = serialize($value);
+			// serialize produces null character
+			// these can not be properly stored in some databases and need to be replaced
+			$value = str_replace(chr(0), '\x00', serialize($value));
 		}
 		return [$value, $valueType];
 	}
@@ -552,7 +536,9 @@ class CustomPropertiesBackend implements BackendInterface {
 			case self::PROPERTY_TYPE_HREF:
 				return new Href($value);
 			case self::PROPERTY_TYPE_OBJECT:
-				return unserialize($value);
+				// some databases can not handel null characters, these are custom encoded during serialization
+				// this custom encoding needs to be first reversed before unserializing
+				return unserialize(str_replace('\x00', chr(0), $value));
 			case self::PROPERTY_TYPE_STRING:
 			default:
 				return $value;

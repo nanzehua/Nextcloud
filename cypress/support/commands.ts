@@ -3,79 +3,22 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 // eslint-disable-next-line n/no-extraneous-import
-import type { AxiosResponse } from 'axios'
-
-import axios from '@nextcloud/axios'
+import axios from 'axios'
 import { addCommands, User } from '@nextcloud/cypress'
 import { basename } from 'path'
 
 // Add custom commands
+import '@testing-library/cypress/add-commands'
 import 'cypress-if'
 import 'cypress-wait-until'
 addCommands()
-
-// Register this file's custom commands types
-declare global {
-	// eslint-disable-next-line @typescript-eslint/no-namespace
-	namespace Cypress {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-		interface Chainable<Subject = any> {
-			/**
-			 * Enable or disable a given user
-			 */
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			enableUser(user: User, enable?: boolean): Cypress.Chainable<Cypress.Response<any>>,
-
-			/**
-			 * Upload a file from the fixtures folder to a given user storage.
-			 * **Warning**: Using this function will reset the previous session
-			 */
-			uploadFile(user: User, fixture?: string, mimeType?: string, target?: string): Cypress.Chainable<void>,
-
-			/**
-			 * Upload a raw content to a given user storage.
-			 * **Warning**: Using this function will reset the previous session
-			 */
-			uploadContent(user: User, content: Blob, mimeType: string, target: string, mtime?: number): Cypress.Chainable<AxiosResponse>,
-
-			/**
-			 * Create a new directory
-			 * **Warning**: Using this function will reset the previous session
-			 */
-			mkdir(user: User, target: string): Cypress.Chainable<void>,
-
-			/**
-			 * Set a file as favorite (or remove from favorite)
-			 */
-			setFileAsFavorite(user: User, target: string, favorite?: boolean): Cypress.Chainable<void>,
-
-			/**
-			 * Reset the admin theming entirely.
-			 * **Warning**: Using this function will reset the previous session
-			 */
-			resetAdminTheming(): Cypress.Chainable<void>,
-
-			/**
-			 * Reset the user theming settings.
-			 * If provided, will clear session and login as the given user.
-			 * **Warning**:  Providing a user will reset the previous session.
-			 */
-			resetUserTheming(user?: User): Cypress.Chainable<void>,
-
-			/**
-			 * Run an occ command in the docker container.
-			 */
-			runOccCommand(command: string, options?: Partial<Cypress.ExecOptions>): Cypress.Chainable<Cypress.Exec>,
-		}
-	}
-}
 
 const url = (Cypress.config('baseUrl') || '').replace(/\/index.php\/?$/g, '')
 Cypress.env('baseUrl', url)
 
 /**
  * Enable or disable a user
- * TODO: standardise in @nextcloud/cypress
+ * TODO: standardize in @nextcloud/cypress
  *
  * @param {User} user the user to dis- / enable
  * @param {boolean} enable True if the user should be enable, false to disable
@@ -102,7 +45,7 @@ Cypress.Commands.add('enableUser', (user: User, enable = true) => {
 
 /**
  * cy.uploadedFile - uploads a file from the fixtures folder
- * TODO: standardise in @nextcloud/cypress
+ * TODO: standardize in @nextcloud/cypress
  *
  * @param {User} user the owner of the file, e.g. admin
  * @param {string} fixture the fixture file name, e.g. image1.jpg
@@ -178,7 +121,7 @@ Cypress.Commands.add('mkdir', (user: User, target: string) => {
 
 /**
  * cy.uploadedContent - uploads a raw content
- * TODO: standardise in @nextcloud/cypress
+ * TODO: standardize in @nextcloud/cypress
  *
  * @param {User} user the owner of the file, e.g. admin
  * @param {Blob} blob the content to upload
@@ -273,7 +216,9 @@ Cypress.Commands.add('resetUserTheming', (user?: User) => {
 	}
 })
 
-Cypress.Commands.add('runOccCommand', (command: string, options?: Partial<Cypress.ExecOptions>) => {
-	const env = Object.entries(options?.env ?? {}).map(([name, value]) => `-e '${name}=${value}'`).join(' ')
-	return cy.exec(`docker exec --user www-data ${env} nextcloud-cypress-tests-server php ./occ ${command}`, options)
+Cypress.Commands.add('userFileExists', (user: string, path: string) => {
+	user.replaceAll('"', '\\"')
+	path.replaceAll('"', '\\"').replaceAll(/^\/+/gm, '')
+	return cy.runCommand(`stat --printf="%s" "data/${user}/files/${path}"`, { failOnNonZeroExit: true })
+		.then((exec) => Number.parseInt(exec.stdout || '0'))
 })

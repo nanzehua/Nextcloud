@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2023 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import type { Folder, Node } from '@nextcloud/files'
+import type { FileAction, Folder, Node, View } from '@nextcloud/files'
 import type { Upload } from '@nextcloud/upload'
 
 // Global definitions
@@ -95,6 +95,14 @@ export interface DragAndDropStore {
 	dragging: FileSource[]
 }
 
+// Active node store
+export interface ActiveStore {
+	_initialized: boolean
+	activeNode: Node|null
+	activeView: View|null
+	activeAction: FileAction|null
+}
+
 export interface TemplateFile {
 	app: string
 	label: string
@@ -104,4 +112,19 @@ export interface TemplateFile {
 	mimetypes: string[]
 	ratio?: number
 	templates?: Record<string, unknown>[]
+}
+
+export type Capabilities = {
+	files: {
+		bigfilechunking: boolean
+		blacklisted_files: string[]
+		forbidden_filename_basenames: string[]
+		forbidden_filename_characters: string[]
+		forbidden_filename_extensions: string[]
+		forbidden_filenames: string[]
+		undelete: boolean
+		version_deletion: boolean
+		version_labeling: boolean
+		versioning: boolean
+	}
 }

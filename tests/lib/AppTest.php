@@ -308,14 +308,14 @@ class AppTest extends \Test\TestCase {
 	/**
 	 * @dataProvider appVersionsProvider
 	 */
-	public function testIsAppCompatible($ocVersion, $appInfo, $expectedResult) {
+	public function testIsAppCompatible($ocVersion, $appInfo, $expectedResult): void {
 		$this->assertEquals($expectedResult, \OC_App::isAppCompatible($ocVersion, $appInfo));
 	}
 
 	/**
 	 * Tests that the app order is correct
 	 */
-	public function testGetEnabledAppsIsSorted() {
+	public function testGetEnabledAppsIsSorted(): void {
 		$apps = \OC_App::getEnabledApps();
 		// copy array
 		$sortedApps = $apps;
@@ -345,6 +345,7 @@ class AppTest extends \Test\TestCase {
 					'federatedfilesharing',
 					'lookup_server_connector',
 					'oauth2',
+					'profile',
 					'provisioning_api',
 					'settings',
 					'theming',
@@ -368,6 +369,7 @@ class AppTest extends \Test\TestCase {
 					'federatedfilesharing',
 					'lookup_server_connector',
 					'oauth2',
+					'profile',
 					'provisioning_api',
 					'settings',
 					'theming',
@@ -392,6 +394,7 @@ class AppTest extends \Test\TestCase {
 					'federatedfilesharing',
 					'lookup_server_connector',
 					'oauth2',
+					'profile',
 					'provisioning_api',
 					'settings',
 					'theming',
@@ -416,6 +419,7 @@ class AppTest extends \Test\TestCase {
 					'federatedfilesharing',
 					'lookup_server_connector',
 					'oauth2',
+					'profile',
 					'provisioning_api',
 					'settings',
 					'theming',
@@ -440,6 +444,7 @@ class AppTest extends \Test\TestCase {
 					'federatedfilesharing',
 					'lookup_server_connector',
 					'oauth2',
+					'profile',
 					'provisioning_api',
 					'settings',
 					'theming',
@@ -457,12 +462,12 @@ class AppTest extends \Test\TestCase {
 	 *
 	 * @dataProvider appConfigValuesProvider
 	 */
-	public function testEnabledApps($user, $expectedApps, $forceAll) {
+	public function testEnabledApps($user, $expectedApps, $forceAll): void {
 		$userManager = \OC::$server->getUserManager();
 		$groupManager = \OC::$server->getGroupManager();
-		$user1 = $userManager->createUser(self::TEST_USER1, self::TEST_USER1);
-		$user2 = $userManager->createUser(self::TEST_USER2, self::TEST_USER2);
-		$user3 = $userManager->createUser(self::TEST_USER3, self::TEST_USER3);
+		$user1 = $userManager->createUser(self::TEST_USER1, 'NotAnEasyPassword123456+');
+		$user2 = $userManager->createUser(self::TEST_USER2, 'NotAnEasyPassword123456_');
+		$user3 = $userManager->createUser(self::TEST_USER3, 'NotAnEasyPassword123456?');
 
 		$group1 = $groupManager->createGroup(self::TEST_GROUP1);
 		$group1->addUser($user1);
@@ -506,9 +511,9 @@ class AppTest extends \Test\TestCase {
 	 * Test isEnabledApps() with cache, not re-reading the list of
 	 * enabled apps more than once when a user is set.
 	 */
-	public function testEnabledAppsCache() {
+	public function testEnabledAppsCache(): void {
 		$userManager = \OC::$server->getUserManager();
-		$user1 = $userManager->createUser(self::TEST_USER1, self::TEST_USER1);
+		$user1 = $userManager->createUser(self::TEST_USER1, 'NotAnEasyPassword123456+');
 
 		\OC_User::setUserId(self::TEST_USER1);
 
@@ -523,11 +528,11 @@ class AppTest extends \Test\TestCase {
 			);
 
 		$apps = \OC_App::getEnabledApps();
-		$this->assertEquals(['files', 'app3', 'cloud_federation_api', 'dav', 'federatedfilesharing', 'lookup_server_connector', 'oauth2', 'provisioning_api', 'settings', 'theming', 'twofactor_backupcodes', 'viewer', 'workflowengine'], $apps);
+		$this->assertEquals(['files', 'app3', 'cloud_federation_api', 'dav', 'federatedfilesharing', 'lookup_server_connector', 'oauth2', 'profile', 'provisioning_api', 'settings', 'theming', 'twofactor_backupcodes', 'viewer', 'workflowengine'], $apps);
 
 		// mock should not be called again here
 		$apps = \OC_App::getEnabledApps();
-		$this->assertEquals(['files', 'app3', 'cloud_federation_api', 'dav', 'federatedfilesharing', 'lookup_server_connector', 'oauth2', 'provisioning_api', 'settings', 'theming', 'twofactor_backupcodes', 'viewer', 'workflowengine'], $apps);
+		$this->assertEquals(['files', 'app3', 'cloud_federation_api', 'dav', 'federatedfilesharing', 'lookup_server_connector', 'oauth2', 'profile', 'provisioning_api', 'settings', 'theming', 'twofactor_backupcodes', 'viewer', 'workflowengine'], $apps);
 
 		$this->restoreAppConfig();
 		\OC_User::setUserId(null);
@@ -615,20 +620,20 @@ class AppTest extends \Test\TestCase {
 	 * @param array $data
 	 * @param array $expected
 	 */
-	public function testParseAppInfo(array $data, array $expected) {
+	public function testParseAppInfo(array $data, array $expected): void {
 		$this->assertSame($expected, \OC_App::parseAppInfo($data));
 	}
 
-	public function testParseAppInfoL10N() {
+	public function testParseAppInfoL10N(): void {
 		$parser = new InfoParser();
-		$data = $parser->parse(\OC::$SERVERROOT. "/tests/data/app/description-multi-lang.xml");
+		$data = $parser->parse(\OC::$SERVERROOT . '/tests/data/app/description-multi-lang.xml');
 		$this->assertEquals('English', \OC_App::parseAppInfo($data, 'en')['description']);
 		$this->assertEquals('German', \OC_App::parseAppInfo($data, 'de')['description']);
 	}
 
-	public function testParseAppInfoL10NSingleLanguage() {
+	public function testParseAppInfoL10NSingleLanguage(): void {
 		$parser = new InfoParser();
-		$data = $parser->parse(\OC::$SERVERROOT. "/tests/data/app/description-single-lang.xml");
+		$data = $parser->parse(\OC::$SERVERROOT . '/tests/data/app/description-single-lang.xml');
 		$this->assertEquals('English', \OC_App::parseAppInfo($data, 'en')['description']);
 	}
 }

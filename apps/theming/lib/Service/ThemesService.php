@@ -28,10 +28,11 @@ class ThemesService {
 		private LoggerInterface $logger,
 		private DefaultTheme $defaultTheme,
 		LightTheme $lightTheme,
-		DarkTheme $darkTheme,
+		private DarkTheme $darkTheme,
 		HighContrastTheme $highContrastTheme,
 		DarkHighContrastTheme $darkHighContrastTheme,
-		DyslexiaFont $dyslexiaFont) {
+		DyslexiaFont $dyslexiaFont,
+	) {
 
 		// Register themes
 		$this->themesProviders = [
@@ -59,9 +60,15 @@ class ThemesService {
 			}
 
 			$defaultTheme = $this->themesProviders[$this->defaultTheme->getId()];
+			$darkTheme = $this->themesProviders[$this->darkTheme->getId()];
 			$theme = $this->themesProviders[$enforcedTheme];
 			return [
+				// Leave the default theme as a fallback
 				$defaultTheme->getId() => $defaultTheme,
+				// Make sure we also have the dark theme to allow apps
+				// to scope sections of their UI to the dark theme
+				$darkTheme->getId() => $darkTheme,
+				// Finally, the enforced theme
 				$theme->getId() => $theme,
 			];
 		}
@@ -120,7 +127,7 @@ class ThemesService {
 			$this->setEnabledThemes($enabledThemes);
 			return $enabledThemes;
 		}
-		
+
 		return $themesIds;
 	}
 
@@ -147,13 +154,16 @@ class ThemesService {
 	 * @return string[]
 	 */
 	public function getEnabledThemes(): array {
+		$enforcedTheme = $this->config->getSystemValueString('enforce_theme', '');
 		$user = $this->userSession->getUser();
 		if ($user === null) {
+			if ($enforcedTheme !== '') {
+				return [$enforcedTheme];
+			}
 			return [];
 		}
 
-		$enforcedTheme = $this->config->getSystemValueString('enforce_theme', '');
-		$enabledThemes = json_decode($this->config->getUserValue($user->getUID(), Application::APP_ID, 'enabled-themes', '[]'));
+		$enabledThemes = json_decode($this->config->getUserValue($user->getUID(), Application::APP_ID, 'enabled-themes', '["default"]'));
 		if ($enforcedTheme !== '') {
 			return array_merge([$enforcedTheme], $enabledThemes);
 		}

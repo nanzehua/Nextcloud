@@ -3,17 +3,25 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 import type { ContentsWithRoot, Node } from '@nextcloud/files'
-import type { ResponseDataDetailed, SearchResult } from 'webdav'
+import type { FileStat, ResponseDataDetailed, SearchResult } from 'webdav'
 
 import { getCurrentUser } from '@nextcloud/auth'
-import { Folder, Permission, davGetRecentSearch, davRootPath, davRemoteURL } from '@nextcloud/files'
+import { Folder, Permission, davGetRecentSearch, davRootPath, davRemoteURL, davResultToNode } from '@nextcloud/files'
 import { CancelablePromise } from 'cancelable-promise'
 import { useUserConfigStore } from '../store/userconfig.ts'
-import { pinia } from '../store/index.ts'
+import { getPinia } from '../store/index.ts'
 import { client } from './WebdavClient.ts'
-import { resultToNode } from './Files.ts'
+import { getBaseUrl } from '@nextcloud/router'
 
 const lastTwoWeeksTimestamp = Math.round((Date.now() / 1000) - (60 * 60 * 24 * 14))
+
+/**
+ * Helper to map a WebDAV result to a Nextcloud node
+ * The search endpoint already includes the dav remote URL so we must not include it in the source
+ *
+ * @param stat the WebDAV result
+ */
+const resultToNode = (stat: FileStat) => davResultToNode(stat, davRootPath, getBaseUrl())
 
 /**
  * Get recently changed nodes
@@ -24,7 +32,7 @@ const lastTwoWeeksTimestamp = Math.round((Date.now() / 1000) - (60 * 60 * 24 * 1
  * @param path Path to search for recent changes
  */
 export const getContents = (path = '/'): CancelablePromise<ContentsWithRoot> => {
-	const store = useUserConfigStore(pinia)
+	const store = useUserConfigStore(getPinia())
 
 	/**
 	 * Filter function that returns only the visible nodes - or hidden if explicitly configured

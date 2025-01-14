@@ -11,10 +11,10 @@ use OCP\AppFramework\Http\Response;
 
 /**
  * @psalm-import-type DataResponseType from DataResponse
- * @template S of int
+ * @template S of Http::STATUS_*
  * @template-covariant T of DataResponseType
  * @template H of array<string, mixed>
- * @template-extends Response<int, array<string, mixed>>
+ * @template-extends Response<Http::STATUS_*, array<string, mixed>>
  */
 abstract class BaseResponse extends Response {
 	/** @var array */
@@ -133,7 +133,9 @@ abstract class BaseResponse extends Response {
 				$v = [];
 			}
 
-			if (\is_array($v)) {
+			if ($k === '$comment') {
+				$writer->writeComment($v);
+			} elseif (\is_array($v)) {
 				$writer->startElement($k);
 				$this->toXML($v, $writer);
 				$writer->endElement();
@@ -141,8 +143,10 @@ abstract class BaseResponse extends Response {
 				$writer->startElement($k);
 				$this->toXML($v->jsonSerialize(), $writer);
 				$writer->endElement();
+			} elseif ($v === null) {
+				$writer->writeElement($k);
 			} else {
-				$writer->writeElement($k, $v);
+				$writer->writeElement($k, (string)$v);
 			}
 		}
 	}

@@ -96,7 +96,7 @@ const shippedBackgroundList = loadState('theming', 'shippedBackgrounds')
 const backgroundImage = loadState('theming', 'userBackgroundImage')
 const {
 	backgroundImage: defaultBackgroundImage,
-	backgroundColor: defaultBackgroundColor,
+	// backgroundColor: defaultBackgroundColor,
 	backgroundMime: defaultBackgroundMime,
 	defaultShippedBackground,
 } = loadState('theming', 'themingDefaults')
@@ -339,7 +339,6 @@ export default {
 		background-size: cover;
 
 		&__filepicker {
-			background-color: var(--color-main-text);
 			background-color: var(--color-background-dark);
 
 			&.background--active {

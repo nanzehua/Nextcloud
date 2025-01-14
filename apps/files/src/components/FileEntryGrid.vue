@@ -17,7 +17,7 @@
 		@dragend="onDragEnd"
 		@drop="onDrop">
 		<!-- Failed indicator -->
-		<span v-if="source.attributes.failed" class="files-list__row--failed" />
+		<span v-if="isFailedSource" class="files-list__row--failed" />
 
 		<!-- Checkbox -->
 		<FileEntryCheckbox :fileid="fileid"
@@ -36,9 +36,8 @@
 				@click.native="execDefaultAction" />
 
 			<FileEntryName ref="name"
-				:display-name="displayName"
+				:basename="basename"
 				:extension="extension"
-				:files-list-width="filesListWidth"
 				:grid-mode="true"
 				:nodes="nodes"
 				:source="source"
@@ -46,12 +45,19 @@
 				@click.native="execDefaultAction" />
 		</td>
 
+		<!-- Mtime -->
+		<td v-if="!compact && isMtimeAvailable"
+			:style="mtimeOpacity"
+			class="files-list__row-mtime"
+			data-cy-files-list-row-mtime
+			@click="openDetailsIfAvailable">
+			<NcDateTime v-if="source.mtime" :timestamp="source.mtime" :ignore-seconds="true" />
+		</td>
+
 		<!-- Actions -->
 		<FileEntryActions ref="actions"
 			:class="`files-list__row-actions-${uniqueId}`"
-			:files-list-width="filesListWidth"
 			:grid-mode="true"
-			:loading.sync="loading"
 			:opened.sync="openedMenu"
 			:source="source" />
 	</tr>
@@ -60,6 +66,10 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 
+import NcDateTime from '@nextcloud/vue/dist/Components/NcDateTime.js'
+
+import { useNavigation } from '../composables/useNavigation.ts'
+import { useRouteParameters } from '../composables/useRouteParameters.ts'
 import { useActionsMenuStore } from '../store/actionsmenu.ts'
 import { useDragAndDropStore } from '../store/dragging.ts'
 import { useFilesStore } from '../store/files.ts'
@@ -79,6 +89,7 @@ export default defineComponent({
 		FileEntryCheckbox,
 		FileEntryName,
 		FileEntryPreview,
+		NcDateTime,
 	},
 
 	mixins: [
@@ -93,12 +104,23 @@ export default defineComponent({
 		const filesStore = useFilesStore()
 		const renamingStore = useRenamingStore()
 		const selectionStore = useSelectionStore()
+		// The file list is guaranteed to be only shown with active view - thus we can set the `loaded` flag
+		const { currentView } = useNavigation(true)
+		const {
+			directory: currentDir,
+			fileId: currentFileId,
+		} = useRouteParameters()
+
 		return {
 			actionsMenuStore,
 			draggingStore,
 			filesStore,
 			renamingStore,
 			selectionStore,
+
+			currentDir,
+			currentFileId,
+			currentView,
 		}
 	},
 

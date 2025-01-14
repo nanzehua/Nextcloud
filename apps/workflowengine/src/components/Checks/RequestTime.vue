@@ -109,7 +109,7 @@ export default {
 			margin-bottom: 5px;
 		}
 
-		.multiselect::v-deep .multiselect__tags:not(:hover):not(:focus):not(:active) {
+		.multiselect:deep(.multiselect__tags:not(:hover):not(:focus):not(:active)) {
 			border: 1px solid transparent;
 		}
 
@@ -120,7 +120,7 @@ export default {
 			min-height: 48px;
 
 			&.timeslot--start {
-				margin-right: 5px;
+				margin-inline-end: 5px;
 				width: calc(50% - 5px);
 			}
 		}

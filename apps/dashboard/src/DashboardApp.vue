@@ -24,7 +24,12 @@
 					class="panel">
 					<div class="panel--header">
 						<h2>
-							<span :aria-labelledby="`panel-${panels[panelId].id}--header--icon--description`"
+							<img v-if="apiWidgets[panels[panelId].id].icon_url"
+								:alt="apiWidgets[panels[panelId].id].title + ' icon'"
+								:src="apiWidgets[panels[panelId].id].icon_url"
+								aria-hidden="true">
+							<span v-else
+								:aria-labelledby="`panel-${panels[panelId].id}--header--icon--description`"
 								aria-hidden="true"
 								:class="apiWidgets[panels[panelId].id].icon_class"
 								role="img" />
@@ -97,7 +102,11 @@
 							:checked="isActive(panel)"
 							@input="updateCheckbox(panel, $event.target.checked)">
 						<label :for="'panel-checkbox-' + panel.id" :class="{ draggable: isActive(panel) }">
-							<span :class="panel.iconClass" aria-hidden="true" />
+							<img v-if="panel.iconUrl"
+								:alt="panel.title + ' icon'"
+								:src="panel.iconUrl"
+								aria-hidden="true">
+							<span v-else :class="panel.iconClass" aria-hidden="true" />
 							{{ panel.title }}
 						</label>
 					</li>
@@ -138,6 +147,7 @@ import ApiDashboardWidget from './components/ApiDashboardWidget.vue'
 
 const panels = loadState('dashboard', 'panels')
 const firstRun = loadState('dashboard', 'firstRun')
+const birthdate = new Date(loadState('dashboard', 'birthdate'))
 
 const statusInfo = {
 	weather: {
@@ -185,15 +195,21 @@ export default {
 			apiWidgets: [],
 			apiWidgetItems: {},
 			loadingItems: true,
+			birthdate,
 		}
 	},
 	computed: {
 		greeting() {
 			const time = this.timer.getHours()
+			const isBirthday = this.birthdate instanceof Date
+				&& this.birthdate.getMonth() === this.timer.getMonth()
+				&& this.birthdate.getDate() === this.timer.getDate()
 
 			// Determine part of the day
 			let partOfDay
-			if (time >= 22 || time < 5) {
+			if (isBirthday) {
+				partOfDay = 'birthday'
+			} else if (time >= 22 || time < 5) {
 				partOfDay = 'night'
 			} else if (time >= 18) {
 				partOfDay = 'evening'
@@ -221,6 +237,10 @@ export default {
 					// Don't use "Good night" as it's not a greeting
 					generic: t('dashboard', 'Hello'),
 					withName: t('dashboard', 'Hello, {name}', { name: this.displayName }, undefined, { escape: false }),
+				},
+				birthday: {
+					generic: t('dashboard', 'Happy birthday 🥳🤩🎂🎉'),
+					withName: t('dashboard', 'Happy birthday, {name} 🥳🤩🎂🎉', { name: this.displayName }, undefined, { escape: false }),
 				},
 			}
 
@@ -286,6 +306,10 @@ export default {
 		for (const widget of Object.values(this.apiWidgets)) {
 			if (widget.reload_interval > 0) {
 				setInterval(async () => {
+					if (!this.layout.includes(widget.id)) {
+						return
+					}
+
 					await this.fetchApiWidgetItems([widget.id], true)
 				}, widget.reload_interval * 1000)
 			}
@@ -498,7 +522,6 @@ export default {
 .panel, .panels > div {
 	// Ensure the maxcontrast color is set for the background
 	--color-text-maxcontrast: var(--color-text-maxcontrast-background-blur, var(--color-main-text));
-
 	width: 320px;
 	max-width: 100%;
 	margin: 16px;
@@ -506,7 +529,7 @@ export default {
 	background-color: var(--color-main-background-blur);
 	-webkit-backdrop-filter: var(--filter-background-blur);
 	backdrop-filter: var(--filter-background-blur);
-	border-radius: var(--border-radius-rounded);
+	border-radius: var(--border-radius-container-large);
 
 	#body-user.theme--highcontrast & {
 		border: 2px solid var(--color-border);
@@ -523,7 +546,8 @@ export default {
 		padding: 16px;
 		cursor: grab;
 
-		&, ::v-deep * {
+		&,
+		:deep(*) {
 			-webkit-touch-callout: none;
 			-webkit-user-select: none;
 			-khtml-user-select: none;
@@ -554,15 +578,20 @@ export default {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			cursor: grab;
+
+			img,
 			span {
 				background-size: 32px;
 				width: 32px;
 				height: 32px;
-				margin-right: 16px;
 				background-position: center;
 				float: left;
 				margin-top: -6px;
-				margin-left: 6px;
+				margin-inline: 6px 16px;
+			}
+
+			img {
+				filter: var(--background-invert-if-dark);
 			}
 		}
 	}
@@ -594,7 +623,7 @@ export default {
 	margin:auto;
 	background-position: 16px center;
 	padding: 12px 16px;
-	padding-left: 36px;
+	padding-inline-start: 36px;
 	border-radius: var(--border-radius-pill);
 	max-width: 200px;
 	opacity: 1;
@@ -604,11 +633,10 @@ export default {
 .button,
 .button-vue,
 .edit-panels,
-.statuses ::v-deep .action-item .action-item__menutoggle,
-.statuses ::v-deep .action-item.action-item--open .action-item__menutoggle {
+.statuses :deep(.action-item .action-item__menutoggle),
+.statuses :deep(.action-item.action-item--open .action-item__menutoggle) {
 	// Ensure the maxcontrast color is set for the background
 	--color-text-maxcontrast: var(--color-text-maxcontrast-background-blur, var(--color-main-text));
-
 	background-color: var(--color-main-background-blur);
 	-webkit-backdrop-filter: var(--filter-background-blur);
 	backdrop-filter: var(--filter-background-blur);
@@ -646,17 +674,22 @@ export default {
 			background-color: var(--color-background-hover);
 			border: 2px solid var(--color-main-background);
 			border-radius: var(--border-radius-large);
-			text-align: left;
+			text-align: start;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
 
+			img,
 			span {
 				position: absolute;
 				top: 16px;
 				width: 24px;
 				height: 24px;
 				background-size: 24px;
+			}
+
+			img {
+				filter: var(--background-invert-if-dark);
 			}
 
 			&:hover {
@@ -671,7 +704,7 @@ export default {
 
 		input[type='checkbox'].checkbox + label:before {
 			position: absolute;
-			right: 12px;
+			inset-inline-end: 12px;
 			top: 16px;
 		}
 

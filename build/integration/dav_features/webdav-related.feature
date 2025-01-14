@@ -38,6 +38,16 @@ Feature: webdav-related
 		Then the HTTP status code should be "204"
 		And Downloaded content when downloading file "/textfile0.txt" with range "bytes=0-6" should be "Welcome"
 
+  Scenario: Moving and overwriting it's parent
+    Given using old dav path
+    And As an "admin"
+    And user "user0" exists
+    And As an "user0"
+    And user "user0" created a folder "/test"
+    And user "user0" created a folder "/test/test"
+    When User "user0" moves file "/test/test" to "/test"
+    Then the HTTP status code should be "403"
+
 	Scenario: Moving a file to a folder with no permissions
 		Given using old dav path
 		And As an "admin"
@@ -278,33 +288,6 @@ Feature: webdav-related
 		Given Logging in using web as "admin"
 		When Sending a "PROPFIND" to "/remote.php/webdav/welcome.txt" with requesttoken
 		Then the HTTP status code should be "207"
-
-	Scenario: Upload chunked file asc
-		Given user "user0" exists
-		And user "user0" uploads chunk file "1" of "3" with "AAAAA" to "/myChunkedFile.txt"
-		And user "user0" uploads chunk file "2" of "3" with "BBBBB" to "/myChunkedFile.txt"
-		And user "user0" uploads chunk file "3" of "3" with "CCCCC" to "/myChunkedFile.txt"
-		When As an "user0"
-		And Downloading file "/myChunkedFile.txt"
-		Then Downloaded content should be "AAAAABBBBBCCCCC"
-
-	Scenario: Upload chunked file desc
-		Given user "user0" exists
-		And user "user0" uploads chunk file "3" of "3" with "CCCCC" to "/myChunkedFile.txt"
-		And user "user0" uploads chunk file "2" of "3" with "BBBBB" to "/myChunkedFile.txt"
-		And user "user0" uploads chunk file "1" of "3" with "AAAAA" to "/myChunkedFile.txt"
-		When As an "user0"
-		And Downloading file "/myChunkedFile.txt"
-		Then Downloaded content should be "AAAAABBBBBCCCCC"
-
-	Scenario: Upload chunked file random
-		Given user "user0" exists
-		And user "user0" uploads chunk file "2" of "3" with "BBBBB" to "/myChunkedFile.txt"
-		And user "user0" uploads chunk file "3" of "3" with "CCCCC" to "/myChunkedFile.txt"
-		And user "user0" uploads chunk file "1" of "3" with "AAAAA" to "/myChunkedFile.txt"
-		When As an "user0"
-		And Downloading file "/myChunkedFile.txt"
-		Then Downloaded content should be "AAAAABBBBBCCCCC"
 
 	Scenario: A file that is not shared does not have a share-types property
 		Given user "user0" exists

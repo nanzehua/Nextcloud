@@ -25,7 +25,7 @@
 		</NcSelect>
 		<input v-if="!isPredefined"
 			type="text"
-			:value="currentValue.pattern"
+			:value="currentValue.id"
 			@input="updateCustom">
 	</div>
 </template>
@@ -109,6 +109,7 @@ export default {
 	input[type='text'] {
 		width: 100%;
 	}
+
 	input[type='text'] {
 		min-height: 48px;
 	}

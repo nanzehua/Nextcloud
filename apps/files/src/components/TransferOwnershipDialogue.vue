@@ -9,7 +9,7 @@
 		<form @submit.prevent="submit">
 			<p class="transfer-select-row">
 				<span>{{ readableDirectory }}</span>
-				<NcButton v-if="directory === undefined" 
+				<NcButton v-if="directory === undefined"
 					class="transfer-select-row__choose_button"
 					@click.prevent="start">
 					{{ t('files', 'Choose file or folder to transfer') }}
@@ -22,8 +22,8 @@
 				<label for="targetUser">
 					<span>{{ t('files', 'New owner') }}</span>
 				</label>
-				<NcSelect input-id="targetUser"
-					v-model="selectedUser"
+				<NcSelect v-model="selectedUser"
+					input-id="targetUser"
 					:options="formatedUserSuggestions"
 					:multiple="false"
 					:loading="loadingUsers"
@@ -52,7 +52,7 @@ import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import Vue from 'vue'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 
-import logger from '../logger.js'
+import logger from '../logger.ts'
 
 const picker = getFilePickerBuilder(t('files', 'Choose a file or folder to transfer'))
 	.setMultiSelect(false)
@@ -206,10 +206,12 @@ export default {
 .middle-align {
 	vertical-align: middle;
 }
+
 p {
 	margin-top: 12px;
 	margin-bottom: 12px;
 }
+
 .new-owner-row {
 	display: flex;
 	flex-wrap: wrap;
@@ -220,7 +222,7 @@ p {
 		margin-bottom: calc(var(--default-grid-baseline) * 2);
 
 		span {
-			margin-right: 8px;
+			margin-inline-end: 8px;
 		}
 	}
 
@@ -229,9 +231,10 @@ p {
 		max-width: 280px;
 	}
 }
+
 .transfer-select-row {
 	span {
-		margin-right: 8px;
+		margin-inline-end: 8px;
 	}
 
 	&__choose_button {

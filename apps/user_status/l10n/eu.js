@@ -20,6 +20,8 @@ OC.L10N.register(
     "Set status" : "Ezarri egoera",
     "Online status" : "Lineako egoera",
     "Status message" : "Egoera-mezua",
+    "Set absence period" : "Ezarri absentzia aldia",
+    "Set absence period and replacement" : "Ezarri absentzia aldia eta ordezkoa",
     "Your status was set automatically" : "Zure egoera automatikoki ezarriko dira",
     "Clear status message" : "Garbitu egoera-mezua",
     "Set status message" : "Ezarri egoera-mezua",
@@ -42,7 +44,6 @@ OC.L10N.register(
     "1 hour" : "Ordu 1",
     "4 hours" : "4 ordu",
     "Mute all notifications" : "Mututu jakinarazpen guztiak",
-    "Appear offline" : "Lineaz kanpo agertu",
-    "View profile" : "Ikusi profila"
+    "Appear offline" : "Lineaz kanpo agertu"
 },
 "nplurals=2; plural=(n != 1);");

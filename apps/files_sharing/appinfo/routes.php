@@ -40,12 +40,6 @@ return [
 			'verb' => 'GET',
 			'root' => '',
 		],
-
-		[
-			'name' => 'externalShares#testRemote',
-			'url' => '/testremote',
-			'verb' => 'GET'
-		],
 		[
 			'name' => 'PublicPreview#getPreview',
 			'url' => '/publicpreview/{token}',
@@ -115,6 +109,11 @@ return [
 			'name' => 'ShareAPI#deleteShare',
 			'url' => '/api/v1/shares/{id}',
 			'verb' => 'DELETE',
+		],
+		[
+			'name' => 'ShareAPI#sendShareEmail',
+			'url' => '/api/v1/shares/{id}/send-email',
+			'verb' => 'POST',
 		],
 		[
 			'name' => 'ShareAPI#acceptShare',

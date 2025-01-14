@@ -6,7 +6,6 @@ OC.L10N.register(
     "View file" : "查看文件",
     "View folder" : "查看文件夹",
     "Set file reminders" : "设置文件提醒",
-    "**📣 File reminders**\n\nSet file reminders." : "**📣 文件提醒**\n\n设置文件提醒。",
     "We will remind you of this file" : "我们将会提醒你该文件",
     "Please choose a valid date & time" : "请选择一个有效的日期&时间",
     "Cancel" : "取消",
@@ -27,9 +26,6 @@ OC.L10N.register(
     "This weekend" : "本周末",
     "Set reminder for this weekend" : "本周末提醒",
     "Next week" : "下周",
-    "Set reminder for next week" : "下周提醒",
-    "Back" : "返回",
-    "Reminder cleared" : "清除提醒",
-    "Failed to load reminder" : "无法加载提醒"
+    "Set reminder for next week" : "下周提醒"
 },
 "nplurals=1; plural=0;");

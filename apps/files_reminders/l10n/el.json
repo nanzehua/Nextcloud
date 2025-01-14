@@ -4,7 +4,6 @@
     "View file" : "Προβολή αρχείου",
     "View folder" : "Προβολή φακέλου",
     "Set file reminders" : "Ορίστε υπενθυμίσεις αρχείων",
-    "**📣 File reminders**\n\nSet file reminders." : "**📣 Υπενθυμίσεις αρχείων**\n\nΟρίστε υπενθυμίσεις αρχείων.",
     "Please choose a valid date & time" : "Επιλέξτε μια έγκυρη ημερομηνία και ώρα",
     "Cancel" : "Ακύρωση",
     "Clear reminder" : "Εκκαθάριση υπενθύμισης",
@@ -21,9 +20,6 @@
     "This weekend" : "Αυτό το Σαββατοκύριακο",
     "Set reminder for this weekend" : "Ορίστε υπενθύμιση για αυτό το Σαββατοκύριακο",
     "Next week" : "Επόμενη εβδομάδα",
-    "Set reminder for next week" : "Ορίστε υπενθύμιση για την επόμενη εβδομάδα",
-    "Back" : "Επιστροφή",
-    "Reminder cleared" : "Η υπενθύμιση διαγράφηκε",
-    "Failed to load reminder" : "Η φόρτωση της υπενθύμισης απέτυχε"
+    "Set reminder for next week" : "Ορίστε υπενθύμιση για την επόμενη εβδομάδα"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
